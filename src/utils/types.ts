@@ -50,6 +50,8 @@ export interface PurchaseOrderItem {
   unitPrice: number;
   total: number;
   isNewProduct?: boolean;
+  proratedUnitCost?: number;
+  suggestedSellingPrice?: number;
 }
 
 export interface PurchaseOrder extends BaseEntity {

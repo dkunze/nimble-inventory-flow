@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -10,7 +11,9 @@ import {
   Trash2,
   Search,
   Package,
-  Edit
+  Edit,
+  Calculator,
+  History
 } from "lucide-react";
 import { 
   MOCK_PURCHASES, 
@@ -20,7 +23,8 @@ import {
   PurchaseOrderItem,
   Supplier,
   Product,
-  generateMockId
+  generateMockId,
+  PriceHistory
 } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +40,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
@@ -46,6 +57,7 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 const PurchaseForm = () => {
   const { id } = useParams();
@@ -71,6 +83,9 @@ const PurchaseForm = () => {
   const [newProductName, setNewProductName] = useState<string>("");
   const [isNewProduct, setIsNewProduct] = useState<boolean>(false);
   const [productSearchTerm, setProductSearchTerm] = useState<string>("");
+  const [showPriceHistory, setShowPriceHistory] = useState<boolean>(false);
+  const [selectedProductForHistory, setSelectedProductForHistory] = useState<string>("");
+  const [priceHistoryData, setPriceHistoryData] = useState<PriceHistory[]>([]);
   
   useEffect(() => {
     if (isEditing) {
@@ -90,6 +105,128 @@ const PurchaseForm = () => {
         supplierName: supplier.name
       }));
     }
+  };
+
+  // Calculate prorated costs for each item
+  const calculateProratedCosts = () => {
+    if (!purchase.items || purchase.items.length === 0) {
+      toast({
+        title: "No hay artículos",
+        description: "Debe agregar artículos antes de prorratear costos",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const additionalCostsTotal = (purchase.shippingCost || 0) + 
+                                (purchase.additionalFees || 0) -
+                                (purchase.discount || 0);
+    
+    if (additionalCostsTotal === 0) {
+      toast({
+        title: "Sin costos adicionales",
+        description: "No hay costos adicionales para prorratear",
+      });
+      return;
+    }
+    
+    // Calculate total purchase amount before prorating
+    const subtotal = purchase.items.reduce((acc, item) => acc + item.total, 0);
+    
+    // Calculate and update each item with prorated cost
+    const updatedItems = purchase.items.map(item => {
+      const itemPercentage = item.total / subtotal;
+      const proratedAmount = additionalCostsTotal * itemPercentage;
+      const proratedUnitCost = proratedAmount / item.quantity;
+      const totalProratedCost = item.unitPrice + proratedUnitCost;
+      const suggestedSellingPrice = Math.round(totalProratedCost * 1.4); // 40% markup
+      
+      return {
+        ...item,
+        proratedUnitCost: totalProratedCost,
+        suggestedSellingPrice
+      };
+    });
+    
+    setPurchase(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
+    
+    toast({
+      title: "Costos prorrateados",
+      description: "Los costos adicionales han sido prorrateados entre los artículos"
+    });
+  };
+  
+  const handleStatusChange = (status: "ORDERED" | "DELIVERED") => {
+    setPurchase(prev => ({ ...prev, status }));
+    
+    if (status === "DELIVERED" && purchase.items) {
+      // Add items to inventory only when status changes to DELIVERED
+      // In a real app, this would update the database
+      toast({
+        title: "Stock actualizado",
+        description: "Los artículos han sido agregados al inventario"
+      });
+      
+      // Record price history for each item
+      const priceHistoryEntries: PriceHistory[] = [];
+      purchase.items.forEach(item => {
+        const historyEntry: PriceHistory = {
+          id: generateMockId(),
+          productId: item.productId,
+          price: item.proratedUnitCost || item.unitPrice,
+          date: new Date(),
+          type: 'purchase',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        priceHistoryEntries.push(historyEntry);
+      });
+      
+      // In a real app, these entries would be saved to the database
+      console.log("Price history entries created:", priceHistoryEntries);
+    }
+  };
+  
+  const loadPriceHistory = (productId: string) => {
+    // In a real app, this would fetch from the database
+    setSelectedProductForHistory(productId);
+    
+    // Create some mock price history data
+    const mockPriceHistory: PriceHistory[] = [
+      {
+        id: generateMockId(),
+        productId,
+        price: 450,
+        date: new Date(2023, 6, 15),
+        type: 'purchase',
+        createdAt: new Date(2023, 6, 15),
+        updatedAt: new Date(2023, 6, 15)
+      },
+      {
+        id: generateMockId(),
+        productId,
+        price: 480,
+        date: new Date(2023, 8, 22),
+        type: 'purchase',
+        createdAt: new Date(2023, 8, 22),
+        updatedAt: new Date(2023, 8, 22)
+      },
+      {
+        id: generateMockId(),
+        productId,
+        price: 500,
+        date: new Date(2023, 11, 5),
+        type: 'purchase',
+        createdAt: new Date(2023, 11, 5),
+        updatedAt: new Date(2023, 11, 5)
+      }
+    ];
+    
+    setPriceHistoryData(mockPriceHistory);
+    setShowPriceHistory(true);
   };
   
   const handleAddItem = () => {
@@ -279,6 +416,10 @@ const PurchaseForm = () => {
     }).format(amount);
   };
   
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('es-AR').format(new Date(date));
+  };
+  
   return (
     <MainLayout>
       <div className="page-container">
@@ -334,9 +475,7 @@ const PurchaseForm = () => {
                   </label>
                   <Select 
                     value={purchase.status} 
-                    onValueChange={(status: "ORDERED" | "DELIVERED") => {
-                      setPurchase(prev => ({ ...prev, status }));
-                    }}
+                    onValueChange={handleStatusChange}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione un estado" />
@@ -347,6 +486,100 @@ const PurchaseForm = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-medium mb-4">Costos adicionales</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="input-group">
+                  <label htmlFor="shippingCost" className="text-sm font-medium">
+                    Costo de envío
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      $
+                    </span>
+                    <Input
+                      id="shippingCost"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="pl-7"
+                      value={purchase.shippingCost || ""}
+                      onChange={(e) => {
+                        setPurchase(prev => ({
+                          ...prev,
+                          shippingCost: parseFloat(e.target.value) || 0
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="input-group">
+                  <label htmlFor="additionalFees" className="text-sm font-medium">
+                    Recargos
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      $
+                    </span>
+                    <Input
+                      id="additionalFees"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="pl-7"
+                      value={purchase.additionalFees || ""}
+                      onChange={(e) => {
+                        setPurchase(prev => ({
+                          ...prev,
+                          additionalFees: parseFloat(e.target.value) || 0
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="input-group">
+                  <label htmlFor="discount" className="text-sm font-medium">
+                    Descuento
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      $
+                    </span>
+                    <Input
+                      id="discount"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="pl-7"
+                      value={purchase.discount || ""}
+                      onChange={(e) => {
+                        setPurchase(prev => ({
+                          ...prev,
+                          discount: parseFloat(e.target.value) || 0
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 flex justify-end">
+                <Button 
+                  type="button" 
+                  variant="secondary"
+                  onClick={calculateProratedCosts}
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Prorratear costos
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -512,8 +745,10 @@ const PurchaseForm = () => {
                         <TableHead>Producto</TableHead>
                         <TableHead>Cantidad</TableHead>
                         <TableHead>Precio Unit.</TableHead>
+                        <TableHead>Costo Prorrat.</TableHead>
+                        <TableHead>P. Venta Sug.</TableHead>
                         <TableHead>Total</TableHead>
-                        <TableHead className="w-[100px]">Acciones</TableHead>
+                        <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -522,11 +757,21 @@ const PurchaseForm = () => {
                           <TableCell className="flex items-center gap-2">
                             {item.productName}
                             {item.isNewProduct && (
-                              <span className="badge badge-blue">Nuevo</span>
+                              <Badge variant="outline">Nuevo</Badge>
                             )}
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                          <TableCell>
+                            {item.proratedUnitCost 
+                              ? formatCurrency(item.proratedUnitCost)
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {item.suggestedSellingPrice 
+                              ? formatCurrency(item.suggestedSellingPrice)
+                              : "-"}
+                          </TableCell>
                           <TableCell>{formatCurrency(item.total)}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -545,6 +790,14 @@ const PurchaseForm = () => {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-blue-500"
+                                onClick={() => loadPriceHistory(item.productId)}
+                              >
+                                <History className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -560,121 +813,38 @@ const PurchaseForm = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-medium mb-4">Costos adicionales</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="input-group">
-                  <label htmlFor="shippingCost" className="text-sm font-medium">
-                    Costo de envío
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      $
-                    </span>
-                    <Input
-                      id="shippingCost"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="pl-7"
-                      value={purchase.shippingCost || ""}
-                      onChange={(e) => {
-                        setPurchase(prev => ({
-                          ...prev,
-                          shippingCost: parseFloat(e.target.value) || 0
-                        }));
-                      }}
-                    />
-                  </div>
+          <div className="border-t pt-4 mt-6">
+            <div className="flex justify-end">
+              <div className="w-full md:w-1/3 space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-medium">Subtotal:</span>
+                  <span>
+                    {formatCurrency(
+                      purchase.items?.reduce((sum, item) => sum + item.total, 0) || 0
+                    )}
+                  </span>
                 </div>
-                
-                <div className="input-group">
-                  <label htmlFor="additionalFees" className="text-sm font-medium">
-                    Recargos
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      $
-                    </span>
-                    <Input
-                      id="additionalFees"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="pl-7"
-                      value={purchase.additionalFees || ""}
-                      onChange={(e) => {
-                        setPurchase(prev => ({
-                          ...prev,
-                          additionalFees: parseFloat(e.target.value) || 0
-                        }));
-                      }}
-                    />
-                  </div>
+                <div className="flex justify-between">
+                  <span>Envío:</span>
+                  <span>{formatCurrency(purchase.shippingCost || 0)}</span>
                 </div>
-                
-                <div className="input-group">
-                  <label htmlFor="discount" className="text-sm font-medium">
-                    Descuento
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      $
-                    </span>
-                    <Input
-                      id="discount"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="pl-7"
-                      value={purchase.discount || ""}
-                      onChange={(e) => {
-                        setPurchase(prev => ({
-                          ...prev,
-                          discount: parseFloat(e.target.value) || 0
-                        }));
-                      }}
-                    />
-                  </div>
+                <div className="flex justify-between">
+                  <span>Recargos:</span>
+                  <span>{formatCurrency(purchase.additionalFees || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Descuento:</span>
+                  <span>-{formatCurrency(purchase.discount || 0)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold border-t pt-2">
+                  <span>Total:</span>
+                  <span>{formatCurrency(purchase.total || 0)}</span>
                 </div>
               </div>
-              
-              <div className="mt-6 border-t pt-4">
-                <div className="flex justify-end">
-                  <div className="w-full md:w-1/3 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Subtotal:</span>
-                      <span>
-                        {formatCurrency(
-                          purchase.items?.reduce((sum, item) => sum + item.total, 0) || 0
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Envío:</span>
-                      <span>{formatCurrency(purchase.shippingCost || 0)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Recargos:</span>
-                      <span>{formatCurrency(purchase.additionalFees || 0)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Descuento:</span>
-                      <span>-{formatCurrency(purchase.discount || 0)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
-                      <span>Total:</span>
-                      <span>{formatCurrency(purchase.total || 0)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
           
-          <div className="flex justify-end gap-3">
+          <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
@@ -689,6 +859,44 @@ const PurchaseForm = () => {
           </div>
         </form>
       </div>
+      
+      {/* Price History Dialog */}
+      <Dialog open={showPriceHistory} onOpenChange={setShowPriceHistory}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Historial de Precios</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <h3 className="font-medium mb-4">
+              {MOCK_PRODUCTS.find(p => p.id === selectedProductForHistory)?.name}
+            </h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Precio</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {priceHistoryData.length > 0 ? (
+                  priceHistoryData.map(history => (
+                    <TableRow key={history.id}>
+                      <TableCell>{formatDate(history.date)}</TableCell>
+                      <TableCell>{formatCurrency(history.price)}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center">
+                      No hay datos históricos
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
