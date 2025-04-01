@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -10,7 +9,8 @@ import {
   Plus, 
   Trash2,
   Search,
-  Package
+  Package,
+  Edit
 } from "lucide-react";
 import { 
   MOCK_PURCHASES, 
@@ -38,6 +38,14 @@ import {
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { 
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from "@/components/ui/table";
 
 const PurchaseForm = () => {
   const { id } = useParams();
@@ -498,29 +506,29 @@ const PurchaseForm = () => {
               
               {purchase.items && purchase.items.length > 0 ? (
                 <div className="table-container">
-                  <table className="app-table">
-                    <thead>
-                      <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unit.</th>
-                        <th>Total</th>
-                        <th width="100">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Precio Unit.</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead className="w-[100px]">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {purchase.items.map((item) => (
-                        <tr key={item.productId}>
-                          <td className="flex items-center gap-2">
+                        <TableRow key={item.productId}>
+                          <TableCell className="flex items-center gap-2">
                             {item.productName}
                             {item.isNewProduct && (
                               <span className="badge badge-blue">Nuevo</span>
                             )}
-                          </td>
-                          <td>{item.quantity}</td>
-                          <td>{formatCurrency(item.unitPrice)}</td>
-                          <td>{formatCurrency(item.total)}</td>
-                          <td>
+                          </TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                          <TableCell>{formatCurrency(item.total)}</TableCell>
+                          <TableCell>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
@@ -538,11 +546,11 @@ const PurchaseForm = () => {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
                 <div className="text-center p-8 border border-dashed rounded-md bg-gray-50">

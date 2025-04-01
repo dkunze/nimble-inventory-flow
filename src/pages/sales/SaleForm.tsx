@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -11,7 +10,8 @@ import {
   Trash2,
   Search,
   Package,
-  User
+  User,
+  Edit
 } from "lucide-react";
 import { 
   MOCK_SALES, 
@@ -30,6 +30,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from "@/components/ui/table";
 
 const SaleForm = () => {
   const { id } = useParams();
@@ -88,7 +96,6 @@ const SaleForm = () => {
     if (!selectedProduct) return;
     
     if (selectedItemForUpdate) {
-      // We're updating an existing item
       setSale(prev => ({
         ...prev,
         items: prev.items?.map(item =>
@@ -104,7 +111,6 @@ const SaleForm = () => {
       
       setSelectedItemForUpdate(null);
     } else {
-      // Check if product already exists in items
       const existingItemIndex = sale.items?.findIndex(
         item => item.productId === selectedProduct.id
       );
@@ -118,7 +124,6 @@ const SaleForm = () => {
       };
       
       if (existingItemIndex !== -1 && existingItemIndex !== undefined) {
-        // Update existing item
         setSale(prev => ({
           ...prev,
           items: prev.items?.map((item, i) =>
@@ -133,7 +138,6 @@ const SaleForm = () => {
           total: (prev.total || 0) + newItem.total
         }));
       } else {
-        // Add new item
         setSale(prev => ({
           ...prev,
           items: [...(prev.items || []), newItem],
@@ -142,7 +146,6 @@ const SaleForm = () => {
       }
     }
     
-    // Reset form
     setSelectedProduct(null);
     setItemQuantity(1);
   };
@@ -167,7 +170,6 @@ const SaleForm = () => {
       }));
     }
     
-    // Reset if we're currently editing this item
     if (selectedItemForUpdate?.productId === productId) {
       setSelectedItemForUpdate(null);
       setSelectedProduct(null);
@@ -178,7 +180,6 @@ const SaleForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
     if (!sale.customerId || !sale.items?.length) {
       toast({
         title: "Datos incompletos",
@@ -187,9 +188,6 @@ const SaleForm = () => {
       });
       return;
     }
-    
-    // Here we would save to API/database
-    // For demo we just simulate success
     
     toast({
       title: isEditing ? "Venta actualizada" : "Venta registrada",
@@ -250,7 +248,7 @@ const SaleForm = () => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0" align="start" className="w-96">
+                  <PopoverContent className="p-0" align="start" sideOffset={5} className="w-96">
                     <div className="p-2">
                       <div className="relative mb-2">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
@@ -315,7 +313,7 @@ const SaleForm = () => {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="p-0" align="start" className="w-96">
+                      <PopoverContent className="p-0" align="start" sideOffset={5}>
                         <div className="p-2">
                           <div className="relative mb-2">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
@@ -414,24 +412,24 @@ const SaleForm = () => {
               
               {sale.items && sale.items.length > 0 ? (
                 <div className="table-container">
-                  <table className="app-table">
-                    <thead>
-                      <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unit.</th>
-                        <th>Total</th>
-                        <th width="100">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Precio Unit.</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead className="w-[100px]">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {sale.items.map((item) => (
-                        <tr key={item.productId}>
-                          <td>{item.productName}</td>
-                          <td>{item.quantity}</td>
-                          <td>{formatCurrency(item.unitPrice)}</td>
-                          <td>{formatCurrency(item.total)}</td>
-                          <td>
+                        <TableRow key={item.productId}>
+                          <TableCell>{item.productName}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                          <TableCell>{formatCurrency(item.total)}</TableCell>
+                          <TableCell>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
@@ -449,11 +447,11 @@ const SaleForm = () => {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
                 <div className="text-center p-8 border border-dashed rounded-md bg-gray-50">
