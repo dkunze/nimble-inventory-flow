@@ -27,6 +27,12 @@ import PurchaseForm from "./pages/purchases/PurchaseForm";
 import SalesList from "./pages/sales/SalesList";
 import SaleForm from "./pages/sales/SaleForm";
 
+// Settings
+import Settings from "./pages/settings/Settings";
+
+// Price History
+import PriceHistory from "./pages/price-history/PriceHistory";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -62,6 +68,12 @@ const App = () => (
           <Route path="/sales" element={<SalesList />} />
           <Route path="/sales/new" element={<SaleForm />} />
           <Route path="/sales/edit/:id" element={<SaleForm />} />
+          
+          {/* Settings Route */}
+          <Route path="/settings" element={<Settings />} />
+          
+          {/* Price History Route */}
+          <Route path="/price-history" element={<PriceHistory />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />

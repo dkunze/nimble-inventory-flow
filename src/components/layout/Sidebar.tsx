@@ -8,7 +8,8 @@ import {
   Truck, 
   ShoppingCart, 
   BarChart3,
-  Settings
+  Settings,
+  History
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -24,7 +25,8 @@ const Sidebar = () => {
     { name: "Clientes", path: "/customers", icon: <Users className="w-5 h-5" /> },
     { name: "Proveedores", path: "/suppliers", icon: <Truck className="w-5 h-5" /> },
     { name: "Compras", path: "/purchases", icon: <ShoppingCart className="w-5 h-5" /> },
-    { name: "Ventas", path: "/sales", icon: <BarChart3 className="w-5 h-5" /> }
+    { name: "Ventas", path: "/sales", icon: <BarChart3 className="w-5 h-5" /> },
+    { name: "Histórico de Precios", path: "/price-history", icon: <History className="w-5 h-5" /> }
   ];
 
   return (
@@ -41,18 +43,33 @@ const Sidebar = () => {
           <Link
             key={item.path}
             to={item.path}
-            className={cn("sidebar-link", isActive(item.path) && "active")}
+            className={cn(
+              "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
+              "hover:bg-gray-100 transition-colors duration-150",
+              isActive(item.path) 
+                ? "bg-primary text-primary-foreground" 
+                : "text-gray-700"
+            )}
           >
             {item.icon}
-            <span>{item.name}</span>
+            <span className="ml-3">{item.name}</span>
           </Link>
         ))}
       </nav>
       
       <div className="absolute bottom-4 left-4 right-4">
-        <Link to="/settings" className="sidebar-link">
+        <Link 
+          to="/settings" 
+          className={cn(
+            "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
+            "hover:bg-gray-100 transition-colors duration-150",
+            isActive("/settings") 
+              ? "bg-primary text-primary-foreground" 
+              : "text-gray-700"
+          )}
+        >
           <Settings className="w-5 h-5" />
-          <span>Configuración</span>
+          <span className="ml-3">Configuración</span>
         </Link>
       </div>
     </aside>

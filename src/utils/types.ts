@@ -1,4 +1,3 @@
-
 // Base entity type for common fields
 export interface BaseEntity {
   id: string;
