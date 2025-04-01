@@ -248,7 +248,7 @@ const SaleForm = () => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0" align="start" sideOffset={5} className="w-96">
+                  <PopoverContent className="p-0 w-96" align="start" sideOffset={5}>
                     <div className="p-2">
                       <div className="relative mb-2">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
