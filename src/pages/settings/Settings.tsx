@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const Settings = () => {
   return (
     <MainLayout>
-      <div className="container py-6">
+      <div className="container max-w-4xl mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Configuración</h1>
         
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList>
+          <TabsList className="inline-flex w-auto">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="company">Empresa</TabsTrigger>
             <TabsTrigger value="users">Usuarios</TabsTrigger>
