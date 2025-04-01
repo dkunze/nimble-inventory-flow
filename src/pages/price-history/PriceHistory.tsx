@@ -89,7 +89,7 @@ const PriceHistory = () => {
                   <SelectValue placeholder="Seleccionar Producto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los productos</SelectItem>
+                  <SelectItem value="all">Todos los productos</SelectItem>
                   {MOCK_PRODUCTS.map(product => (
                     <SelectItem key={product.id} value={product.id}>
                       {product.name}
