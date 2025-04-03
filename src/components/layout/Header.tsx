@@ -1,24 +1,40 @@
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Moon, Search, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/components/theme/theme-provider";
 
 const Header = () => {
+  const { theme, setTheme } = useTheme();
+  
   return (
-    <header className="bg-white h-16 border-b flex items-center justify-between px-6">
+    <header className="bg-white dark:bg-gray-800 h-16 border-b dark:border-gray-700 flex items-center justify-between px-6">
       <div className="flex-1">
-        <h1 className="text-xl font-semibold text-gray-800">Sistema de Gestión de Inventario</h1>
+        <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Sistema de Gestión de Inventario</h1>
       </div>
       
       <div className="flex items-center space-x-4">
         <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
           <Input
             type="search"
             placeholder="Buscar..."
             className="w-64 pl-8 rounded-md"
           />
         </div>
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
         
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
