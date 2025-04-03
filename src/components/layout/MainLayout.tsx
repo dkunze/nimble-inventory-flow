@@ -42,9 +42,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       )}
 
       <div className="flex flex-1">
-        {!isMobile && <Sidebar />}
+        {!isMobile && <div className="w-64 flex-shrink-0">
+          {/* This is just a placeholder for the fixed sidebar's width */}
+        </div>}
         
-        <main className="flex-1 bg-gray-50 dark:bg-gray-900">
+        <main className={`flex-1 bg-gray-50 dark:bg-gray-900 ${!isMobile ? "ml-64 pt-16" : ""}`}>
           {children}
         </main>
       </div>

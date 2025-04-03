@@ -8,7 +8,7 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   
   return (
-    <header className="bg-white dark:bg-gray-800 h-16 border-b dark:border-gray-700 flex items-center justify-between px-6">
+    <header className="bg-white dark:bg-gray-800 h-16 border-b dark:border-gray-700 flex items-center justify-between px-6 sticky top-0 z-30">
       <div className="flex-1">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Sistema de Gestión de Inventario</h1>
       </div>
