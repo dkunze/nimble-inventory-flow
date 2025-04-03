@@ -30,7 +30,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="bg-white w-64 min-h-screen p-4 border-r hidden md:block">
+    <aside className="bg-white dark:bg-gray-800 w-64 min-h-screen p-4 border-r dark:border-gray-700 hidden md:block">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
           <Package className="h-6 w-6" />
@@ -45,10 +45,10 @@ const Sidebar = () => {
             to={item.path}
             className={cn(
               "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
-              "hover:bg-gray-100 transition-colors duration-150",
+              "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150",
               isActive(item.path) 
                 ? "bg-primary text-primary-foreground" 
-                : "text-gray-700"
+                : "text-gray-700 dark:text-gray-200"
             )}
           >
             {item.icon}
@@ -62,10 +62,10 @@ const Sidebar = () => {
           to="/settings" 
           className={cn(
             "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
-            "hover:bg-gray-100 transition-colors duration-150",
+            "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150",
             isActive("/settings") 
               ? "bg-primary text-primary-foreground" 
-              : "text-gray-700"
+              : "text-gray-700 dark:text-gray-200"
           )}
         >
           <Settings className="w-5 h-5" />

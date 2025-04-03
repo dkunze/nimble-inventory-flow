@@ -15,10 +15,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {isMobile ? (
         <div className="sticky top-0 z-10">
-          <div className="flex items-center justify-between bg-white px-4 h-16 border-b">
+          <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 h-16 border-b dark:border-gray-700">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -30,7 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </SheetContent>
             </Sheet>
             
-            <h1 className="text-xl font-semibold text-gray-800">StockFlow</h1>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">StockFlow</h1>
             
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium">
               A
@@ -44,7 +44,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-1">
         {!isMobile && <Sidebar />}
         
-        <main className="flex-1 bg-gray-50">
+        <main className="flex-1 bg-gray-50 dark:bg-gray-900">
           {children}
         </main>
       </div>
