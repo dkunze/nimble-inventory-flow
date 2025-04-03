@@ -11,7 +11,6 @@ import {
   Settings,
   History
 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -31,7 +30,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="bg-white dark:bg-gray-800 w-64 min-h-screen p-4 border-r dark:border-gray-700 hidden md:block fixed left-0 z-20">
+    <aside className="bg-white dark:bg-gray-800 w-64 min-h-screen p-4 border-r dark:border-gray-700 hidden md:block">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
           <Package className="h-6 w-6" />
@@ -39,26 +38,24 @@ const Sidebar = () => {
         </h2>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-160px)]">
-        <nav className="space-y-1">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
-                "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150",
-                isActive(item.path) 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-gray-700 dark:text-gray-200"
-              )}
-            >
-              {item.icon}
-              <span className="ml-3">{item.name}</span>
-            </Link>
-          ))}
-        </nav>
-      </ScrollArea>
+      <nav className="space-y-1">
+        {navigationItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={cn(
+              "flex items-center px-3 py-2 rounded-md text-sm font-medium w-full",
+              "hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150",
+              isActive(item.path) 
+                ? "bg-primary text-primary-foreground" 
+                : "text-gray-700 dark:text-gray-200"
+            )}
+          >
+            {item.icon}
+            <span className="ml-3">{item.name}</span>
+          </Link>
+        ))}
+      </nav>
       
       <div className="absolute bottom-4 left-4 right-4 max-w-[224px]">
         <Link 
