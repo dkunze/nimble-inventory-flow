@@ -57,7 +57,7 @@ const Sidebar = () => {
         ))}
       </nav>
       
-      <div className="absolute bottom-4 left-4 right-4">
+      <div className="absolute bottom-4 left-4 right-4 max-w-[224px]">
         <Link 
           to="/settings" 
           className={cn(
