@@ -14,14 +14,10 @@ import {
   Edit
 } from "lucide-react";
 import { 
-  MOCK_SALES, 
-  MOCK_CUSTOMERS, 
-  MOCK_PRODUCTS, 
   SalesOrder, 
   SalesOrderItem,
   Customer,
   Product,
-  generateMockId
 } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +34,11 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
+import { 
+  salesService, 
+  customerService, 
+  productService 
+} from "@/services/dataService";
 
 const SaleForm = () => {
   const { id } = useParams();
@@ -53,6 +54,8 @@ const SaleForm = () => {
     items: []
   });
   
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedItemForUpdate, setSelectedItemForUpdate] = useState<SalesOrderItem | null>(null);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -60,19 +63,23 @@ const SaleForm = () => {
   const [productSearch, setProductSearch] = useState<string>("");
   
   useEffect(() => {
-    if (isEditing) {
-      const foundSale = MOCK_SALES.find(s => s.id === id);
+    // Load customers and products
+    setCustomers(customerService.getAll());
+    setProducts(productService.getAll());
+    
+    if (isEditing && id) {
+      const foundSale = salesService.getById(id);
       if (foundSale) {
         setSale(foundSale);
       }
     }
   }, [id, isEditing]);
   
-  const filteredCustomers = MOCK_CUSTOMERS.filter(customer => 
+  const filteredCustomers = customers.filter(customer => 
     customer.name.toLowerCase().includes(customerSearch.toLowerCase())
   );
   
-  const filteredProducts = MOCK_PRODUCTS.filter(product =>
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(productSearch.toLowerCase()) &&
     product.stock > 0
   );
@@ -151,7 +158,7 @@ const SaleForm = () => {
   };
   
   const handleEditItem = (item: SalesOrderItem) => {
-    const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
+    const product = products.find(p => p.id === item.productId);
     if (product) {
       setSelectedProduct(product);
       setSelectedItemForUpdate(item);
@@ -189,14 +196,28 @@ const SaleForm = () => {
       return;
     }
     
-    toast({
-      title: isEditing ? "Venta actualizada" : "Venta registrada",
-      description: isEditing
-        ? "La venta ha sido actualizada correctamente."
-        : "La venta ha sido registrada correctamente."
-    });
-    
-    navigate("/sales");
+    try {
+      if (isEditing && sale.id) {
+        salesService.update(sale as SalesOrder);
+      } else {
+        salesService.create(sale);
+      }
+      
+      toast({
+        title: isEditing ? "Venta actualizada" : "Venta registrada",
+        description: isEditing
+          ? "La venta ha sido actualizada correctamente."
+          : "La venta ha sido registrada correctamente."
+      });
+      
+      navigate("/sales");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al guardar la venta.",
+        variant: "destructive"
+      });
+    }
   };
   
   const formatCurrency = (amount: number) => {

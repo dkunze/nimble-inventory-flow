@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save } from "lucide-react";
-import { MOCK_PRODUCTS, Product, generateMockId } from "@/utils/types";
+import { Product } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
+import { productService } from "@/services/dataService";
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -25,8 +26,8 @@ const ProductForm = () => {
   });
   
   useEffect(() => {
-    if (isEditing) {
-      const foundProduct = MOCK_PRODUCTS.find(p => p.id === id);
+    if (isEditing && id) {
+      const foundProduct = productService.getById(id);
       if (foundProduct) {
         setProduct(foundProduct);
       }
@@ -55,17 +56,28 @@ const ProductForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here we would save to API/database
-    // For demo we just simulate success
-    
-    toast({
-      title: isEditing ? "Producto actualizado" : "Producto creado",
-      description: isEditing
-        ? "El producto ha sido actualizado correctamente."
-        : "El producto ha sido creado correctamente."
-    });
-    
-    navigate("/products");
+    try {
+      if (isEditing && product.id) {
+        productService.update(product as Product);
+      } else {
+        productService.create(product);
+      }
+      
+      toast({
+        title: isEditing ? "Producto actualizado" : "Producto creado",
+        description: isEditing
+          ? "El producto ha sido actualizado correctamente."
+          : "El producto ha sido creado correctamente."
+      });
+      
+      navigate("/products");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al guardar el producto.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (

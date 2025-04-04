@@ -5,8 +5,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Save } from "lucide-react";
-import { MOCK_SUPPLIERS, Supplier } from "@/utils/types";
+import { Supplier } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
+import { supplierService } from "@/services/dataService";
 
 const SupplierForm = () => {
   const { id } = useParams();
@@ -23,8 +24,8 @@ const SupplierForm = () => {
   });
   
   useEffect(() => {
-    if (isEditing) {
-      const foundSupplier = MOCK_SUPPLIERS.find(s => s.id === id);
+    if (isEditing && id) {
+      const foundSupplier = supplierService.getById(id);
       if (foundSupplier) {
         setSupplier(foundSupplier);
       }
@@ -39,17 +40,28 @@ const SupplierForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here we would save to API/database
-    // For demo we just simulate success
-    
-    toast({
-      title: isEditing ? "Proveedor actualizado" : "Proveedor creado",
-      description: isEditing
-        ? "El proveedor ha sido actualizado correctamente."
-        : "El proveedor ha sido creado correctamente."
-    });
-    
-    navigate("/suppliers");
+    try {
+      if (isEditing && supplier.id) {
+        supplierService.update(supplier as Supplier);
+      } else {
+        supplierService.create(supplier);
+      }
+      
+      toast({
+        title: isEditing ? "Proveedor actualizado" : "Proveedor creado",
+        description: isEditing
+          ? "El proveedor ha sido actualizado correctamente."
+          : "El proveedor ha sido creado correctamente."
+      });
+      
+      navigate("/suppliers");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al guardar el proveedor.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (

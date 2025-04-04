@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -12,28 +12,45 @@ import {
   Download
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { MOCK_PRODUCTS } from "@/utils/types";
+import { Product } from "@/utils/types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { productService } from "@/services/dataService";
 
 const ProductsList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
   
-  const filteredProducts = MOCK_PRODUCTS.filter(product => 
+  useEffect(() => {
+    // Load products when component mounts
+    setProducts(productService.getAll());
+  }, []);
+  
+  const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.warehouseCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleDelete = (id: string) => {
-    // Would delete the product in a real app
-    toast({
-      title: "Producto eliminado",
-      description: "El producto ha sido eliminado correctamente.",
-    });
+    try {
+      productService.delete(id);
+      setProducts(products.filter(product => product.id !== id));
+      
+      toast({
+        title: "Producto eliminado",
+        description: "El producto ha sido eliminado correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al eliminar el producto.",
+        variant: "destructive"
+      });
+    }
   };
   
   const formatCurrency = (amount: number) => {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -16,15 +15,12 @@ import {
   History
 } from "lucide-react";
 import { 
-  MOCK_PURCHASES, 
-  MOCK_SUPPLIERS, 
-  MOCK_PRODUCTS, 
   PurchaseOrder, 
   PurchaseOrderItem,
   Supplier,
   Product,
-  generateMockId,
-  PriceHistory
+  PriceHistory,
+  generateMockId
 } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +41,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -58,6 +53,12 @@ import {
   TableCell
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { 
+  purchaseService, 
+  supplierService, 
+  productService,
+  priceHistoryService 
+} from "@/services/dataService";
 
 const PurchaseForm = () => {
   const { id } = useParams();
@@ -77,6 +78,8 @@ const PurchaseForm = () => {
     items: []
   });
   
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedItemForUpdate, setSelectedItemForUpdate] = useState<PurchaseOrderItem | null>(null);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [itemPrice, setItemPrice] = useState<number>(0);
@@ -88,8 +91,11 @@ const PurchaseForm = () => {
   const [priceHistoryData, setPriceHistoryData] = useState<PriceHistory[]>([]);
   
   useEffect(() => {
-    if (isEditing) {
-      const foundPurchase = MOCK_PURCHASES.find(p => p.id === id);
+    setSuppliers(supplierService.getAll());
+    setProducts(productService.getAll());
+    
+    if (isEditing && id) {
+      const foundPurchase = purchaseService.getById(id);
       if (foundPurchase) {
         setPurchase(foundPurchase);
       }
@@ -97,7 +103,7 @@ const PurchaseForm = () => {
   }, [id, isEditing]);
   
   const handleSupplierChange = (supplierId: string) => {
-    const supplier = MOCK_SUPPLIERS.find(s => s.id === supplierId);
+    const supplier = suppliers.find(s => s.id === supplierId);
     if (supplier) {
       setPurchase(prev => ({
         ...prev,
@@ -107,7 +113,6 @@ const PurchaseForm = () => {
     }
   };
 
-  // Calculate prorated costs for each item
   const calculateProratedCosts = () => {
     if (!purchase.items || purchase.items.length === 0) {
       toast({
@@ -130,16 +135,14 @@ const PurchaseForm = () => {
       return;
     }
     
-    // Calculate total purchase amount before prorating
     const subtotal = purchase.items.reduce((acc, item) => acc + item.total, 0);
     
-    // Calculate and update each item with prorated cost
     const updatedItems = purchase.items.map(item => {
       const itemPercentage = item.total / subtotal;
       const proratedAmount = additionalCostsTotal * itemPercentage;
       const proratedUnitCost = proratedAmount / item.quantity;
       const totalProratedCost = item.unitPrice + proratedUnitCost;
-      const suggestedSellingPrice = Math.round(totalProratedCost * 1.4); // 40% markup
+      const suggestedSellingPrice = Math.round(totalProratedCost * 1.4);
       
       return {
         ...item,
@@ -163,14 +166,11 @@ const PurchaseForm = () => {
     setPurchase(prev => ({ ...prev, status }));
     
     if (status === "DELIVERED" && purchase.items) {
-      // Add items to inventory only when status changes to DELIVERED
-      // In a real app, this would update the database
       toast({
         title: "Stock actualizado",
         description: "Los artículos han sido agregados al inventario"
       });
       
-      // Record price history for each item
       const priceHistoryEntries: PriceHistory[] = [];
       purchase.items.forEach(item => {
         const historyEntry: PriceHistory = {
@@ -185,53 +185,20 @@ const PurchaseForm = () => {
         priceHistoryEntries.push(historyEntry);
       });
       
-      // In a real app, these entries would be saved to the database
       console.log("Price history entries created:", priceHistoryEntries);
     }
   };
   
   const loadPriceHistory = (productId: string) => {
-    // In a real app, this would fetch from the database
     setSelectedProductForHistory(productId);
     
-    // Create some mock price history data
-    const mockPriceHistory: PriceHistory[] = [
-      {
-        id: generateMockId(),
-        productId,
-        price: 450,
-        date: new Date(2023, 6, 15),
-        type: 'purchase',
-        createdAt: new Date(2023, 6, 15),
-        updatedAt: new Date(2023, 6, 15)
-      },
-      {
-        id: generateMockId(),
-        productId,
-        price: 480,
-        date: new Date(2023, 8, 22),
-        type: 'purchase',
-        createdAt: new Date(2023, 8, 22),
-        updatedAt: new Date(2023, 8, 22)
-      },
-      {
-        id: generateMockId(),
-        productId,
-        price: 500,
-        date: new Date(2023, 11, 5),
-        type: 'purchase',
-        createdAt: new Date(2023, 11, 5),
-        updatedAt: new Date(2023, 11, 5)
-      }
-    ];
-    
-    setPriceHistoryData(mockPriceHistory);
+    const historyData = priceHistoryService.getByProductId(productId);
+    setPriceHistoryData(historyData);
     setShowPriceHistory(true);
   };
   
   const handleAddItem = () => {
     if (selectedItemForUpdate) {
-      // We're updating an existing item
       setPurchase(prev => ({
         ...prev,
         items: prev.items?.map(item =>
@@ -248,9 +215,7 @@ const PurchaseForm = () => {
       
       setSelectedItemForUpdate(null);
     } else {
-      // We're adding a new item
       if (isNewProduct) {
-        // Create new product as we add it to the purchase
         const newProductId = generateMockId();
         
         const newItem: PurchaseOrderItem = {
@@ -270,8 +235,7 @@ const PurchaseForm = () => {
         
         setNewProductName("");
       } else {
-        // Standard product selection
-        const selectedProduct = MOCK_PRODUCTS.find(p => p.id === productSearchTerm);
+        const selectedProduct = products.find(p => p.id === productSearchTerm);
         
         if (selectedProduct) {
           const newItem: PurchaseOrderItem = {
@@ -282,13 +246,11 @@ const PurchaseForm = () => {
             total: itemQuantity * (itemPrice || selectedProduct.lastPurchasePrice)
           };
           
-          // Check if the item already exists
           const existingItemIndex = purchase.items?.findIndex(
             item => item.productId === selectedProduct.id
           );
           
           if (existingItemIndex !== -1 && existingItemIndex !== undefined) {
-            // Update existing item
             setPurchase(prev => ({
               ...prev,
               items: prev.items?.map((item, i) =>
@@ -303,7 +265,6 @@ const PurchaseForm = () => {
               total: (prev.total || 0) + newItem.total
             }));
           } else {
-            // Add new item
             setPurchase(prev => ({
               ...prev,
               items: [...(prev.items || []), newItem],
@@ -314,7 +275,6 @@ const PurchaseForm = () => {
       }
     }
     
-    // Reset form
     setProductSearchTerm("");
     setItemQuantity(1);
     setItemPrice(0);
@@ -346,7 +306,6 @@ const PurchaseForm = () => {
       }));
     }
     
-    // Reset if we're currently editing this item
     if (selectedItemForUpdate?.productId === productId) {
       setSelectedItemForUpdate(null);
       setProductSearchTerm("");
@@ -357,7 +316,6 @@ const PurchaseForm = () => {
   };
   
   const updateTotals = () => {
-    // Calculate subtotal from items
     const itemsSubtotal = purchase.items?.reduce((sum, item) => sum + item.total, 0) || 0;
     
     const total = itemsSubtotal +
@@ -377,7 +335,7 @@ const PurchaseForm = () => {
     }
   }, [purchase.shippingCost, purchase.additionalFees, purchase.discount]);
   
-  const filteredProducts = MOCK_PRODUCTS.filter(product =>
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
     product.warehouseCode.toLowerCase().includes(productSearchTerm.toLowerCase())
   );
@@ -385,7 +343,6 @@ const PurchaseForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
     if (!purchase.supplierId || !purchase.items?.length) {
       toast({
         title: "Datos incompletos",
@@ -395,17 +352,28 @@ const PurchaseForm = () => {
       return;
     }
     
-    // Here we would save to API/database
-    // For demo we just simulate success
-    
-    toast({
-      title: isEditing ? "Compra actualizada" : "Compra creada",
-      description: isEditing
-        ? "La orden de compra ha sido actualizada correctamente."
-        : "La orden de compra ha sido creada correctamente."
-    });
-    
-    navigate("/purchases");
+    try {
+      if (isEditing && purchase.id) {
+        purchaseService.update(purchase as PurchaseOrder);
+      } else {
+        purchaseService.create(purchase);
+      }
+      
+      toast({
+        title: isEditing ? "Compra actualizada" : "Compra creada",
+        description: isEditing
+          ? "La orden de compra ha sido actualizada correctamente."
+          : "La orden de compra ha sido creada correctamente."
+      });
+      
+      navigate("/purchases");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al guardar la compra.",
+        variant: "destructive"
+      });
+    }
   };
   
   const formatCurrency = (amount: number) => {
@@ -460,7 +428,7 @@ const PurchaseForm = () => {
                       <SelectValue placeholder="Seleccione un proveedor" />
                     </SelectTrigger>
                     <SelectContent>
-                      {MOCK_SUPPLIERS.map(supplier => (
+                      {suppliers.map(supplier => (
                         <SelectItem key={supplier.id} value={supplier.id}>
                           {supplier.name}
                         </SelectItem>
@@ -625,7 +593,7 @@ const PurchaseForm = () => {
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-start">
                             {productSearchTerm ? (
-                              MOCK_PRODUCTS.find(p => p.id === productSearchTerm)?.name || "Seleccione un producto"
+                              products.find(p => p.id === productSearchTerm)?.name || "Seleccione un producto"
                             ) : (
                               <span className="text-muted-foreground">Seleccione un producto</span>
                             )}
@@ -860,7 +828,6 @@ const PurchaseForm = () => {
         </form>
       </div>
       
-      {/* Price History Dialog */}
       <Dialog open={showPriceHistory} onOpenChange={setShowPriceHistory}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -868,7 +835,7 @@ const PurchaseForm = () => {
           </DialogHeader>
           <div className="py-4">
             <h3 className="font-medium mb-4">
-              {MOCK_PRODUCTS.find(p => p.id === selectedProductForHistory)?.name}
+              {products.find(p => p.id === selectedProductForHistory)?.name}
             </h3>
             <Table>
               <TableHeader>
