@@ -146,14 +146,14 @@ const ProductForm = () => {
                 Categoría
               </label>
               <Select
-                value={product.categoryId || ""}
-                onValueChange={(value) => handleSelectChange("categoryId", value)}
+                value={product.categoryId || "null"}
+                onValueChange={(value) => handleSelectChange("categoryId", value === "null" ? "" : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin categoría</SelectItem>
+                  <SelectItem value="null">Sin categoría</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -182,14 +182,14 @@ const ProductForm = () => {
                 Depósito
               </label>
               <Select
-                value={product.warehouseId || ""}
-                onValueChange={(value) => handleSelectChange("warehouseId", value)}
+                value={product.warehouseId || "null"}
+                onValueChange={(value) => handleSelectChange("warehouseId", value === "null" ? "" : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione un depósito" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin depósito</SelectItem>
+                  <SelectItem value="null">Sin depósito</SelectItem>
                   {warehouses.map(warehouse => (
                     <SelectItem key={warehouse.id} value={warehouse.id}>
                       {warehouse.name} ({warehouse.code})
