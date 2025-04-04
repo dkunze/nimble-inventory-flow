@@ -123,7 +123,7 @@ const PriceHistory = () => {
                     <SelectValue placeholder="Seleccionar Producto" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los productos</SelectItem>
+                    <SelectItem value="all">Todos los productos</SelectItem>
                     {MOCK_PRODUCTS.map(product => (
                       <SelectItem key={product.id} value={product.id}>
                         {product.name}
@@ -172,18 +172,20 @@ const PriceHistory = () => {
               </TableHeader>
               <TableBody>
                 {filteredHistory.length > 0 ? (
-                  filteredHistory.map((item) => {
-                    const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>{product?.name || 'Producto no encontrado'}</TableCell>
-                        <TableCell>{formatDate(item.date)}</TableCell>
-                        <TableCell className="text-right">
-                          ${item.price.toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
+                  filteredHistory
+                    .filter(item => selectedProductId === "all" ? true : item.productId === selectedProductId)
+                    .map((item) => {
+                      const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell>{product?.name || 'Producto no encontrado'}</TableCell>
+                          <TableCell>{formatDate(item.date)}</TableCell>
+                          <TableCell className="text-right">
+                            ${item.price.toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={3} className="text-center py-4">
