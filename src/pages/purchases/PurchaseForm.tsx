@@ -337,7 +337,7 @@ const PurchaseForm = () => {
   
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-    product.warehouseCode.toLowerCase().includes(productSearchTerm.toLowerCase())
+    (product.warehouseId && product.warehouseId.toLowerCase().includes(productSearchTerm.toLowerCase()))
   );
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -626,7 +626,9 @@ const PurchaseForm = () => {
                                     </div>
                                     <div>
                                       <p className="font-medium text-sm">{product.name}</p>
-                                      <p className="text-xs text-gray-500">Código: {product.warehouseCode}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {product.warehouseId ? `Depósito: ${product.warehouseId}` : 'Sin depósito asignado'}
+                                      </p>
                                     </div>
                                   </div>
                                 ))
