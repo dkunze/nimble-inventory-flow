@@ -12,27 +12,47 @@ import {
   Download
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Product } from "@/utils/types";
+import { Product, Warehouse, Category } from "@/utils/types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { productService } from "@/services/dataService";
+import { 
+  productService, 
+  warehouseService, 
+  categoryService 
+} from "@/services/dataService";
 
 const ProductsList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [warehouses, setWarehouses] = useState<Record<string, Warehouse>>({});
+  const [categories, setCategories] = useState<Record<string, Category>>({});
   
   useEffect(() => {
     // Load products when component mounts
     setProducts(productService.getAll());
+    
+    // Load warehouses and categories and convert to map for easy lookup
+    const warehousesList = warehouseService.getAll();
+    const warehouseMap: Record<string, Warehouse> = {};
+    warehousesList.forEach(warehouse => {
+      warehouseMap[warehouse.id] = warehouse;
+    });
+    setWarehouses(warehouseMap);
+    
+    const categoriesList = categoryService.getAll();
+    const categoryMap: Record<string, Category> = {};
+    categoriesList.forEach(category => {
+      categoryMap[category.id] = category;
+    });
+    setCategories(categoryMap);
   }, []);
   
   const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.warehouseCode.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleDelete = (id: string) => {
@@ -61,6 +81,16 @@ const ProductsList = () => {
     }).format(amount);
   };
   
+  const getWarehouseName = (warehouseId?: string) => {
+    if (!warehouseId) return "Sin depósito";
+    return warehouses[warehouseId]?.name || "Desconocido";
+  };
+  
+  const getCategoryName = (categoryId?: string) => {
+    if (!categoryId) return "Sin categoría";
+    return categories[categoryId]?.name || "Desconocida";
+  };
+  
   return (
     <MainLayout>
       <div className="page-container">
@@ -85,7 +115,7 @@ const ProductsList = () => {
               <div className="relative flex-grow">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
-                  placeholder="Buscar por nombre o código..."
+                  placeholder="Buscar por nombre..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -111,7 +141,12 @@ const ProductsList = () => {
                   <div className="p-4 flex justify-between items-start border-b">
                     <div>
                       <h3 className="font-medium">{product.name}</h3>
-                      <p className="text-sm text-gray-500">Código: {product.warehouseCode}</p>
+                      <p className="text-sm text-gray-500">
+                        {getCategoryName(product.categoryId)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Depósito: {getWarehouseName(product.warehouseId)}
+                      </p>
                     </div>
                     <div>
                       <span className={`badge ${product.stock > 10 ? 'badge-green' : product.stock > 5 ? 'badge-yellow' : 'badge-red'}`}>
@@ -154,7 +189,8 @@ const ProductsList = () => {
                     Nombre
                     <ArrowUpDown className="h-3 w-3" />
                   </th>
-                  <th>Código</th>
+                  <th>Categoría</th>
+                  <th>Depósito</th>
                   <th>Stock</th>
                   <th>Precio de Compra</th>
                   <th>Precio de Venta</th>
@@ -166,7 +202,8 @@ const ProductsList = () => {
                   <tr key={product.id}>
                     <td>{index + 1}</td>
                     <td>{product.name}</td>
-                    <td>{product.warehouseCode}</td>
+                    <td>{getCategoryName(product.categoryId)}</td>
+                    <td>{getWarehouseName(product.warehouseId)}</td>
                     <td>
                       <span className={`badge ${product.stock > 10 ? 'badge-green' : product.stock > 5 ? 'badge-yellow' : 'badge-red'}`}>
                         {product.stock} unidades

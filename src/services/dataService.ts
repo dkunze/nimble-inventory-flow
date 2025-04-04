@@ -1,4 +1,3 @@
-
 import { 
   Product,
   Customer,
@@ -6,12 +5,16 @@ import {
   SalesOrder,
   PurchaseOrder,
   PriceHistory,
+  Warehouse,
+  Category,
   generateMockId,
   MOCK_PRODUCTS,
   MOCK_CUSTOMERS,
   MOCK_SUPPLIERS,
   MOCK_SALES,
-  MOCK_PURCHASES
+  MOCK_PURCHASES,
+  MOCK_WAREHOUSES,
+  MOCK_CATEGORIES
 } from "@/utils/types";
 
 // Initialize localStorage with mock data if it doesn't exist
@@ -25,6 +28,8 @@ const initializeLocalStorage = () => {
     localStorage.setItem('sales', JSON.stringify(MOCK_SALES));
     localStorage.setItem('purchases', JSON.stringify(MOCK_PURCHASES));
     localStorage.setItem('priceHistory', JSON.stringify([]));
+    localStorage.setItem('warehouses', JSON.stringify(MOCK_WAREHOUSES));
+    localStorage.setItem('categories', JSON.stringify(MOCK_CATEGORIES));
     
     // Mark as initialized
     localStorage.setItem('dataInitialized', 'true');
@@ -96,13 +101,6 @@ export const productService = {
   getAll: () => getAll<Product>('products'),
   getById: (id: string) => getById<Product>('products', id),
   create: (product: Partial<Product>) => {
-    // Generate warehouseCode if not provided
-    if (!product.warehouseCode) {
-      const prefix = product.name?.substring(0, 2).toUpperCase() || 'PR';
-      const productsCount = getAll<Product>('products').length;
-      product.warehouseCode = `${prefix}${(productsCount + 1).toString().padStart(3, '0')}`;
-    }
-    
     const newProduct = create<Product>('products', product as Product);
     
     // Record price history for new product
@@ -143,6 +141,22 @@ export const productService = {
     return update<Product>('products', product);
   },
   delete: (id: string) => remove<Product>('products', id)
+};
+
+export const warehouseService = {
+  getAll: () => getAll<Warehouse>('warehouses'),
+  getById: (id: string) => getById<Warehouse>('warehouses', id),
+  create: (warehouse: Partial<Warehouse>) => create<Warehouse>('warehouses', warehouse as Warehouse),
+  update: (warehouse: Warehouse) => update<Warehouse>('warehouses', warehouse),
+  delete: (id: string) => remove<Warehouse>('warehouses', id)
+};
+
+export const categoryService = {
+  getAll: () => getAll<Category>('categories'),
+  getById: (id: string) => getById<Category>('categories', id),
+  create: (category: Partial<Category>) => create<Category>('categories', category as Category),
+  update: (category: Category) => update<Category>('categories', category),
+  delete: (id: string) => remove<Category>('categories', id)
 };
 
 export const customerService = {

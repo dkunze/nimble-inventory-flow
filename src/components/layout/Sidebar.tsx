@@ -9,7 +9,9 @@ import {
   ShoppingCart, 
   BarChart3,
   Settings,
-  History
+  History,
+  Archive,
+  List
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -22,6 +24,8 @@ const Sidebar = () => {
   const navigationItems = [
     { name: "Dashboard", path: "/", icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: "Productos", path: "/products", icon: <Package className="w-5 h-5" /> },
+    { name: "Categorías", path: "/categories", icon: <List className="w-5 h-5" /> },
+    { name: "Depósitos", path: "/warehouses", icon: <Archive className="w-5 h-5" /> },
     { name: "Clientes", path: "/customers", icon: <Users className="w-5 h-5" /> },
     { name: "Proveedores", path: "/suppliers", icon: <Truck className="w-5 h-5" /> },
     { name: "Compras", path: "/purchases", icon: <ShoppingCart className="w-5 h-5" /> },

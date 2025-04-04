@@ -1,3 +1,4 @@
+
 // Base entity type for common fields
 export interface BaseEntity {
   id: string;
@@ -5,11 +6,24 @@ export interface BaseEntity {
   updatedAt: Date;
 }
 
+// Warehouse type
+export interface Warehouse extends BaseEntity {
+  name: string;
+  code: string;
+}
+
+// Category type
+export interface Category extends BaseEntity {
+  name: string;
+  description: string;
+}
+
 // Product related types
 export interface Product extends BaseEntity {
   name: string;
   description: string;
-  warehouseCode: string;
+  warehouseId?: string;
+  categoryId?: string;
   lastPurchasePrice: number;
   sellingPrice: number;
   stock: number;
@@ -95,13 +109,50 @@ export const generateMockId = (): string => {
   return Math.random().toString(36).substring(2, 15);
 };
 
+// Sample data for warehouses
+export const MOCK_WAREHOUSES: Warehouse[] = [
+  {
+    id: generateMockId(),
+    name: 'Depósito Principal',
+    code: 'DP001',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: generateMockId(),
+    name: 'Depósito Secundario',
+    code: 'DS002',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
+// Sample data for categories
+export const MOCK_CATEGORIES: Category[] = [
+  {
+    id: generateMockId(),
+    name: 'Electrónicos',
+    description: 'Productos electrónicos y accesorios',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: generateMockId(),
+    name: 'Oficina',
+    description: 'Artículos para oficina',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
 // Sample data
 export const MOCK_PRODUCTS: Product[] = [
   {
     id: generateMockId(),
     name: 'Laptop HP ProBook',
     description: 'Laptop profesional para trabajo de oficina',
-    warehouseCode: 'LP001',
+    warehouseId: MOCK_WAREHOUSES[0].id,
+    categoryId: MOCK_CATEGORIES[0].id,
     lastPurchasePrice: 500,
     sellingPrice: 700,
     stock: 15,
@@ -112,7 +163,8 @@ export const MOCK_PRODUCTS: Product[] = [
     id: generateMockId(),
     name: 'Monitor 24" Samsung',
     description: 'Monitor LED de 24 pulgadas Full HD',
-    warehouseCode: 'MN002',
+    warehouseId: MOCK_WAREHOUSES[0].id,
+    categoryId: MOCK_CATEGORIES[0].id,
     lastPurchasePrice: 120,
     sellingPrice: 168,
     stock: 25,
@@ -123,7 +175,8 @@ export const MOCK_PRODUCTS: Product[] = [
     id: generateMockId(),
     name: 'Teclado Logitech K380',
     description: 'Teclado inalámbrico compacto',
-    warehouseCode: 'KB003',
+    warehouseId: MOCK_WAREHOUSES[1].id,
+    categoryId: MOCK_CATEGORIES[1].id,
     lastPurchasePrice: 30,
     sellingPrice: 42,
     stock: 40,
@@ -134,7 +187,8 @@ export const MOCK_PRODUCTS: Product[] = [
     id: generateMockId(),
     name: 'Mouse Óptico Dell',
     description: 'Mouse ergonómico con cable USB',
-    warehouseCode: 'MS004',
+    warehouseId: MOCK_WAREHOUSES[1].id,
+    categoryId: MOCK_CATEGORIES[1].id,
     lastPurchasePrice: 15,
     sellingPrice: 21,
     stock: 50,

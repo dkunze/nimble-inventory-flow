@@ -6,9 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save } from "lucide-react";
-import { Product } from "@/utils/types";
+import { Product, Warehouse, Category } from "@/utils/types";
 import { useToast } from "@/hooks/use-toast";
-import { productService } from "@/services/dataService";
+import { 
+  productService, 
+  warehouseService, 
+  categoryService 
+} from "@/services/dataService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -19,13 +30,21 @@ const ProductForm = () => {
   const [product, setProduct] = useState<Partial<Product>>({
     name: "",
     description: "",
-    warehouseCode: "",
+    warehouseId: "",
+    categoryId: "",
     lastPurchasePrice: 0,
     sellingPrice: 0,
     stock: 0
   });
   
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  
   useEffect(() => {
+    // Load warehouses and categories
+    setWarehouses(warehouseService.getAll());
+    setCategories(categoryService.getAll());
+    
     if (isEditing && id) {
       const foundProduct = productService.getById(id);
       if (foundProduct) {
@@ -44,6 +63,10 @@ const ProductForm = () => {
     } else {
       setProduct(prev => ({ ...prev, [name]: value }));
     }
+  };
+  
+  const handleSelectChange = (name: string, value: string) => {
+    setProduct(prev => ({ ...prev, [name]: value }));
   };
   
   const handleRecalculatePrice = () => {
@@ -119,17 +142,25 @@ const ProductForm = () => {
             </div>
             
             <div className="input-group">
-              <label htmlFor="warehouseCode" className="text-sm font-medium">
-                Código de Depósito *
+              <label htmlFor="categoryId" className="text-sm font-medium">
+                Categoría
               </label>
-              <Input
-                id="warehouseCode"
-                name="warehouseCode"
-                value={product.warehouseCode}
-                onChange={handleChange}
-                required
-                placeholder="Ej: LP001"
-              />
+              <Select
+                value={product.categoryId || ""}
+                onValueChange={(value) => handleSelectChange("categoryId", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin categoría</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="input-group md:col-span-2">
@@ -144,6 +175,28 @@ const ProductForm = () => {
                 placeholder="Descripción detallada del producto"
                 rows={3}
               />
+            </div>
+            
+            <div className="input-group">
+              <label htmlFor="warehouseId" className="text-sm font-medium">
+                Depósito
+              </label>
+              <Select
+                value={product.warehouseId || ""}
+                onValueChange={(value) => handleSelectChange("warehouseId", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione un depósito" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin depósito</SelectItem>
+                  {warehouses.map(warehouse => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name} ({warehouse.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="input-group">

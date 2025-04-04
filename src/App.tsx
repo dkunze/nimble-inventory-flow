@@ -12,6 +12,14 @@ import NotFound from "./pages/NotFound";
 import ProductsList from "./pages/products/ProductsList";
 import ProductForm from "./pages/products/ProductForm";
 
+// Categories
+import CategoriesList from "./pages/categories/CategoriesList";
+import CategoryForm from "./pages/categories/CategoryForm";
+
+// Warehouses
+import WarehousesList from "./pages/warehouses/WarehousesList";
+import WarehouseForm from "./pages/warehouses/WarehouseForm";
+
 // Customers
 import CustomersList from "./pages/customers/CustomersList";
 import CustomerForm from "./pages/customers/CustomerForm";
@@ -50,6 +58,16 @@ const App = () => (
             <Route path="/products" element={<ProductsList />} />
             <Route path="/products/new" element={<ProductForm />} />
             <Route path="/products/edit/:id" element={<ProductForm />} />
+            
+            {/* Categories Routes */}
+            <Route path="/categories" element={<CategoriesList />} />
+            <Route path="/categories/new" element={<CategoryForm />} />
+            <Route path="/categories/edit/:id" element={<CategoryForm />} />
+            
+            {/* Warehouses Routes */}
+            <Route path="/warehouses" element={<WarehousesList />} />
+            <Route path="/warehouses/new" element={<WarehouseForm />} />
+            <Route path="/warehouses/edit/:id" element={<WarehouseForm />} />
             
             {/* Customers Routes */}
             <Route path="/customers" element={<CustomersList />} />
