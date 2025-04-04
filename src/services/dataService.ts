@@ -6,16 +6,18 @@ import {
   SalesOrder,
   PurchaseOrder,
   PriceHistory,
-  generateMockId
+  generateMockId,
+  MOCK_PRODUCTS,
+  MOCK_CUSTOMERS,
+  MOCK_SUPPLIERS,
+  MOCK_SALES,
+  MOCK_PURCHASES
 } from "@/utils/types";
 
 // Initialize localStorage with mock data if it doesn't exist
 const initializeLocalStorage = () => {
   // Check if data is already initialized
   if (!localStorage.getItem('dataInitialized')) {
-    // Import mock data from types
-    const { MOCK_PRODUCTS, MOCK_CUSTOMERS, MOCK_SUPPLIERS, MOCK_SALES, MOCK_PURCHASES } = require('@/utils/types');
-    
     // Store mock data in localStorage
     localStorage.setItem('products', JSON.stringify(MOCK_PRODUCTS));
     localStorage.setItem('customers', JSON.stringify(MOCK_CUSTOMERS));
@@ -167,7 +169,7 @@ export const salesService = {
       ...sale,
       id: generateMockId(),
       date: sale.date || new Date(),
-      status: sale.status || 'COMPLETED'
+      status: 'COMPLETED'
     } as SalesOrder);
     
     // Update product stock
@@ -207,7 +209,7 @@ export const purchaseService = {
     const newPurchase = create<PurchaseOrder>('purchases', {
       ...purchase,
       id: generateMockId(),
-      date: purchase.date || new Date(),
+      date: purchase.date || new Date()
     } as PurchaseOrder);
     
     // Update product stock if status is DELIVERED
