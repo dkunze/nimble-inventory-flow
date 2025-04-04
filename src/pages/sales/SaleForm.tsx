@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -61,6 +62,7 @@ const SaleForm = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [customerSearch, setCustomerSearch] = useState<string>("");
   const [productSearch, setProductSearch] = useState<string>("");
+  const [customPrice, setCustomPrice] = useState<number | null>(null);
   
   useEffect(() => {
     // Load customers and products
@@ -96,25 +98,35 @@ const SaleForm = () => {
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
     setItemQuantity(1);
+    setCustomPrice(product.sellingPrice);
     setProductSearch("");
   };
   
   const handleAddItem = () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !customPrice) return;
     
     if (selectedItemForUpdate) {
-      setSale(prev => ({
-        ...prev,
-        items: prev.items?.map(item =>
+      setSale(prev => {
+        const updatedItems = prev.items?.map(item =>
           item.productId === selectedItemForUpdate.productId
             ? {
                 ...item,
                 quantity: itemQuantity,
-                total: itemQuantity * selectedProduct.sellingPrice
+                unitPrice: customPrice,
+                total: itemQuantity * customPrice
               }
             : item
-        ) || []
-      }));
+        ) || [];
+        
+        // Calculate new total
+        const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+        
+        return {
+          ...prev,
+          items: updatedItems,
+          total: newTotal
+        };
+      });
       
       setSelectedItemForUpdate(null);
     } else {
@@ -126,14 +138,13 @@ const SaleForm = () => {
         productId: selectedProduct.id,
         productName: selectedProduct.name,
         quantity: itemQuantity,
-        unitPrice: selectedProduct.sellingPrice,
-        total: itemQuantity * selectedProduct.sellingPrice
+        unitPrice: customPrice,
+        total: itemQuantity * customPrice
       };
       
       if (existingItemIndex !== -1 && existingItemIndex !== undefined) {
-        setSale(prev => ({
-          ...prev,
-          items: prev.items?.map((item, i) =>
+        setSale(prev => {
+          const updatedItems = prev.items?.map((item, i) =>
             i === existingItemIndex
               ? {
                   ...item,
@@ -141,20 +152,35 @@ const SaleForm = () => {
                   total: item.total + newItem.total
                 }
               : item
-          ) || [],
-          total: (prev.total || 0) + newItem.total
-        }));
+          ) || [];
+          
+          // Calculate new total
+          const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+          
+          return {
+            ...prev,
+            items: updatedItems,
+            total: newTotal
+          };
+        });
       } else {
-        setSale(prev => ({
-          ...prev,
-          items: [...(prev.items || []), newItem],
-          total: (prev.total || 0) + newItem.total
-        }));
+        setSale(prev => {
+          const updatedItems = [...(prev.items || []), newItem];
+          // Calculate new total
+          const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+          
+          return {
+            ...prev,
+            items: updatedItems,
+            total: newTotal
+          };
+        });
       }
     }
     
     setSelectedProduct(null);
     setItemQuantity(1);
+    setCustomPrice(null);
   };
   
   const handleEditItem = (item: SalesOrderItem) => {
@@ -163,6 +189,7 @@ const SaleForm = () => {
       setSelectedProduct(product);
       setSelectedItemForUpdate(item);
       setItemQuantity(item.quantity);
+      setCustomPrice(item.unitPrice);
     }
   };
   
@@ -170,17 +197,24 @@ const SaleForm = () => {
     const itemToRemove = sale.items?.find(item => item.productId === productId);
     
     if (itemToRemove) {
-      setSale(prev => ({
-        ...prev,
-        items: prev.items?.filter(item => item.productId !== productId) || [],
-        total: (prev.total || 0) - itemToRemove.total
-      }));
+      setSale(prev => {
+        const updatedItems = prev.items?.filter(item => item.productId !== productId) || [];
+        // Calculate new total
+        const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+        
+        return {
+          ...prev,
+          items: updatedItems,
+          total: newTotal
+        };
+      });
     }
     
     if (selectedItemForUpdate?.productId === productId) {
       setSelectedItemForUpdate(null);
       setSelectedProduct(null);
       setItemQuantity(1);
+      setCustomPrice(null);
     }
   };
   
@@ -199,19 +233,21 @@ const SaleForm = () => {
     try {
       if (isEditing && sale.id) {
         salesService.update(sale as SalesOrder);
+        toast({
+          title: "Venta actualizada",
+          description: "La venta ha sido actualizada correctamente."
+        });
       } else {
         salesService.create(sale);
+        toast({
+          title: "Venta registrada",
+          description: "La venta ha sido registrada correctamente."
+        });
       }
-      
-      toast({
-        title: isEditing ? "Venta actualizada" : "Venta registrada",
-        description: isEditing
-          ? "La venta ha sido actualizada correctamente."
-          : "La venta ha sido registrada correctamente."
-      });
       
       navigate("/sales");
     } catch (error) {
+      console.error("Error saving sale:", error);
       toast({
         title: "Error",
         description: "Ha ocurrido un error al guardar la venta.",
@@ -396,14 +432,23 @@ const SaleForm = () => {
                   </div>
                   
                   <div className="input-group">
-                    <label className="text-sm font-medium">
-                      Precio unitario
+                    <label htmlFor="customPrice" className="text-sm font-medium">
+                      Precio unitario *
                     </label>
                     <Input
-                      value={selectedProduct ? formatCurrency(selectedProduct.sellingPrice) : ""}
-                      disabled
-                      className="bg-gray-50"
+                      id="customPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={customPrice || ""}
+                      onChange={(e) => setCustomPrice(parseFloat(e.target.value) || 0)}
+                      className="bg-white"
                     />
+                    {selectedProduct && customPrice !== selectedProduct.sellingPrice && (
+                      <p className="text-xs text-orange-500 mt-1">
+                        Precio original: {formatCurrency(selectedProduct.sellingPrice)}
+                      </p>
+                    )}
                   </div>
                   
                   <div className="input-group">
@@ -411,7 +456,7 @@ const SaleForm = () => {
                       Subtotal
                     </label>
                     <Input
-                      value={selectedProduct ? formatCurrency(itemQuantity * selectedProduct.sellingPrice) : ""}
+                      value={customPrice && itemQuantity ? formatCurrency(itemQuantity * customPrice) : ""}
                       disabled
                       className="bg-gray-50"
                     />
@@ -421,7 +466,7 @@ const SaleForm = () => {
                     <Button
                       type="button"
                       onClick={handleAddItem}
-                      disabled={!selectedProduct || itemQuantity <= 0}
+                      disabled={!selectedProduct || !customPrice || itemQuantity <= 0}
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-2" />

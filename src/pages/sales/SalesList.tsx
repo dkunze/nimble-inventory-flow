@@ -13,27 +13,39 @@ import {
   User
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { MOCK_SALES } from "@/utils/types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { salesService } from "@/services/dataService";
 
 const SalesList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
+  const [sales, setSales] = useState(salesService.getAll());
   
-  const filteredSales = MOCK_SALES.filter(sale => 
+  const filteredSales = sales.filter(sale => 
     sale.customerName.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleDelete = (id: string) => {
-    // Would delete the sale in a real app
-    toast({
-      title: "Venta eliminada",
-      description: "La venta ha sido eliminada correctamente.",
-    });
+    if (confirm("¿Está seguro que desea eliminar esta venta?")) {
+      const result = salesService.delete(id);
+      if (result) {
+        setSales(salesService.getAll());
+        toast({
+          title: "Venta eliminada",
+          description: "La venta ha sido eliminada correctamente.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar la venta.",
+          variant: "destructive"
+        });
+      }
+    }
   };
   
   const formatCurrency = (amount: number) => {
