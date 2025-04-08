@@ -1,14 +1,17 @@
 import express from 'express';
 import cors from 'cors';
-import productsRouter from './routes/products.js';
+import productRoutes from './routes/products.js';
+import warehouseRoutes from './routes/warehouses.js';
 
 const app = express();
-const PORT = 3001;
+const port = process.env.PORT || 3002;
 
 app.use(cors());
 app.use(express.json());
-app.use('/api/products', productsRouter);
 
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+app.use('/api/products', productRoutes);
+app.use('/api/warehouses', warehouseRoutes);
+
+app.listen(port, () => {
+  console.log(`Servidor backend corriendo en http://localhost:${port}`);
 });

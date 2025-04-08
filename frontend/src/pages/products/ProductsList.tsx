@@ -32,24 +32,39 @@ const ProductsList = () => {
   const [categories, setCategories] = useState<Record<string, Category>>({});
   
   useEffect(() => {
-    // Load products when component mounts
-    setProducts(productService.getAll());
-    
-    // Load warehouses and categories and convert to map for easy lookup
-    const warehousesList = warehouseService.getAll();
-    const warehouseMap: Record<string, Warehouse> = {};
-    warehousesList.forEach(warehouse => {
-      warehouseMap[warehouse.id] = warehouse;
-    });
-    setWarehouses(warehouseMap);
-    
-    const categoriesList = categoryService.getAll();
-    const categoryMap: Record<string, Category> = {};
-    categoriesList.forEach(category => {
-      categoryMap[category.id] = category;
-    });
-    setCategories(categoryMap);
-  }, []);
+    const fetchData = async () => {
+      try {
+        // 1. Productos
+        const productsData = await productService.getAll();
+        setProducts(productsData);
+  
+        // 2. Warehouses
+        const warehousesList = await warehouseService.getAll();
+        const warehouseMap: Record<string, Warehouse> = {};
+        warehousesList.forEach(warehouse => {
+          warehouseMap[warehouse.id] = warehouse;
+        });
+        setWarehouses(warehouseMap);
+  
+        // 3. Categorías
+        const categoriesList = await categoryService.getAll();
+        const categoryMap: Record<string, Category> = {};
+        categoriesList.forEach(category => {
+          categoryMap[category.id] = category;
+        });
+        setCategories(categoryMap);
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los datos",
+          variant: "destructive"
+        });
+      }
+    };
+  
+    fetchData();
+  }, []);  
   
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase())

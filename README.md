@@ -77,7 +77,7 @@ docker-compose up --build
 Esto:
 - Creará la base de datos PostgreSQL
 - Ejecutará el script `scriptDB.sql` solo la **primera vez** que se cree el volumen
-- Iniciará el backend en `http://localhost:3001`
+- Iniciará el backend en `http://localhost:3002`
 - Iniciará pgAdmin en `http://localhost:5050`
 
 ---
@@ -86,12 +86,12 @@ Esto:
 
 Listar productos:
 ```bash
-curl http://localhost:3001/api/products
+curl http://localhost:3002/api/products
 ```
 
 Crear un producto (reemplazar los UUIDs reales de almacén y categoría):
 ```bash
-curl -X POST http://localhost:3001/api/products \
+curl -X POST http://localhost:3002/api/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Notebook Lenovo",
