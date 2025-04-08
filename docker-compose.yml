@@ -14,7 +14,8 @@ services:
       - "5432:5432"
 
   backend:
-    build: .
+    build:
+      context: ./backend
     ports:
       - "3002:3001"
     depends_on:
