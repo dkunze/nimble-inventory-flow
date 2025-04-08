@@ -1,21 +1,18 @@
-Para abrir pgAdmin: http://localhost:5050
-Login: admin@admin.com / admin
+- **pgAdmin URL**: `http://localhost:5050`
+- **Login**: admin@admin.com / admin
 
 
-🔌 Pestaña Connection
-Estos son los datos que usaste en docker-compose.yml y .env:
+# 🔌 Pestaña Connection
 
-Campo	Valor
-Host name	db
-Port	5432
-Maintenance DB	nimble
-Username	postgres
-Password	postgres
+- **Host name**:	db
+- **Port**:	5432
+- **Maintenance DB**:	nimble
+- **Username**:	postgres
+- **Password**:	postgres
 
-
-Backend: npm run dev
-Docker: docker compose up --build
-
+- **Backend**: npm run dev
+- **Docker**: docker compose down -v                 
+- **Docker**: docker compose up --build
 
 # 📦 Nimble Inventory Flow - Backend
 
