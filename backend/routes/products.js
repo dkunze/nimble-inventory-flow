@@ -1,6 +1,7 @@
 import express from 'express';
 import db from '../db/index.js';
-import { getAllProducts } from '../services/productService.js';
+
+import { getAllProducts, getProductById } from '../services/productService.js';
 
 const router = express.Router();
 
@@ -31,6 +32,23 @@ router.post('/', async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error al crear producto:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await getProductById(id);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error al obtener producto:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

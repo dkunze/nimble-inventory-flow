@@ -41,18 +41,30 @@ const ProductForm = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   
   useEffect(() => {
-    // Load warehouses and categories
-    setWarehouses(warehouseService.getAll());
-    setCategories(categoryService.getAll());
-    
-    if (isEditing && id) {
-      const foundProduct = productService.getById(id);
-      if (foundProduct) {
-        setProduct(foundProduct);
-      }
-    }
-  }, [id, isEditing]);
+    const fetchData = async () => {
+      try {
+        const [warehousesData, categoriesData] = await Promise.all([
+          warehouseService.getAll(),
+          categoryService.getAll()
+        ]);
   
+        setWarehouses(warehousesData);
+        setCategories(categoriesData);
+  
+        if (isEditing && id) {
+          const foundProduct = await productService.getById(id);
+          if (foundProduct) {
+            setProduct(foundProduct);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      }
+    };
+  
+    fetchData();
+  }, [id, isEditing]);  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     

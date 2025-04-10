@@ -33,6 +33,11 @@ const deleteData = async (url: string): Promise<void> => {
   if (!res.ok) throw new Error(`Error deleting ${url}`);
 };
 
+// const getCategoriesByWarehouse = async (warehouseId: string): Promise<Category[]> => {
+//   const res = await fetch(`${API_BASE}/categories/${warehouseId}/categories`);
+//   if (!res.ok) throw new Error(`Error fetching categories for warehouse ${warehouseId}`);
+// }
+
 // PRODUCTOS
 export const productService = {
   getAll: () => fetchData<Product[]>("/products"),
